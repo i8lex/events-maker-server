@@ -11,6 +11,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { Module } from '@nestjs/common';
+import { UserResponseService } from '../user/user-response.service';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { Module } from '@nestjs/common';
     JwtStrategy,
     JwtAuthGuard,
     UserService,
+    UserResponseService,
   ],
   exports: [AuthService],
   controllers: [AuthController],

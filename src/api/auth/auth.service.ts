@@ -13,7 +13,6 @@ import { UserLoginResponseDTO } from './dto/userLoginResponse.dto';
 import { RegisterUserDTO } from './dto/register.dto';
 import * as jwt from 'jsonwebtoken';
 import { UserRegisterResponseDTO } from './dto/userRegisterResponse.dto';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -94,14 +93,5 @@ export class AuthService {
     }
 
     throw new UnauthorizedException('Something went wrong');
-  }
-
-  async getUserIdFromToken(token: string): Promise<Types.ObjectId> {
-    try {
-      const payload = this.jwtService.verify(token.split(' ')[1]);
-      return new Types.ObjectId(payload.id);
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
   }
 }

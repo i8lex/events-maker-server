@@ -3,6 +3,7 @@ import {
   Get,
   Put,
   Delete,
+  Request,
   Param,
   Body,
   UseGuards,
@@ -16,6 +17,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
+import { UserDTO } from './dto/user.dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -27,8 +29,8 @@ export class UserController {
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'OK', type: User, isArray: true })
-  async findAll(): Promise<User[]> {
-    return this.userService.findAllUsers();
+  async findAll(@Request() request): Promise<UserDTO[]> {
+    return this.userService.findAllUsers(request);
   }
 
   @Get(':id')
