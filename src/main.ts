@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter, MulterModule } from '@nestjs/platform-express';
+import { HttpExceptionFilter } from './common/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter());
@@ -32,7 +33,7 @@ async function bootstrap() {
   MulterModule.register({
     dest: './uploads',
   });
-
+  app.useGlobalFilters(new HttpExceptionFilter());
   await app.listen(3001);
 }
-bootstrap();
+bootstrap().then();

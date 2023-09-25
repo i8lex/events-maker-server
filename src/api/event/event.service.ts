@@ -13,9 +13,9 @@ export class EventService {
     @Inject(UserService) private readonly userService: UserService,
   ) {}
 
-  async findAllEvents(): Promise<Event[]> {
-    return this.eventModel.find().exec();
-  }
+  // async findAllEvents(): Promise<Event[]> {
+  //   return this.eventModel.find().exec();
+  // }
   async findAllEventsByOwner(request: Request): Promise<Event[]> {
     const token = request.headers['authorization'];
     const userId = await this.userService.getUserIdFromToken(token);

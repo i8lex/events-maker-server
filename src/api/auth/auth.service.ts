@@ -1,8 +1,9 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '../user/user.schema';
 import { JwtService } from '@nestjs/jwt';
@@ -13,12 +14,17 @@ import { UserLoginResponseDTO } from './dto/userLoginResponse.dto';
 import { RegisterUserDTO } from './dto/register.dto';
 import * as jwt from 'jsonwebtoken';
 import { UserRegisterResponseDTO } from './dto/userRegisterResponse.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
   async register(cred: RegisterUserDTO): Promise<UserRegisterResponseDTO> {
     const { name, email, password } = cred;
@@ -43,27 +49,44 @@ export class AuthService {
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
       expiresIn: '15m',
     });
+    const body = JSON.stringify({ token, email, name });
+    fetch(`${this.configService.get<string>('BASE_URL')}/api/email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error('Ошибка:', error);
+      });
 
-    // mail logic here !!
-
-    const newUser = new User();
-    newUser.name = name;
-    newUser.email = email;
-    newUser.password = hashedPassword;
-    newUser.confirmationCode = token;
-    await this.userService.createUser(newUser);
+    const newUser = new this.userModel({
+      name,
+      email,
+      password: hashedPassword,
+      confirmationCode: token,
+    });
+    await newUser.save();
     return {
       email: newUser.email,
       message: 'User successfully registered',
     };
   }
-  async login(cred: LoginUserDTO): Promise<UserLoginResponseDTO> {
+  async login(cred: LoginUserDTO): Promise<UserLoginResponseDTO | Error> {
     const user = await this.validateUser(cred.email, cred.password);
     if (!user) {
-      throw new NotFoundException('Wrong email or password');
+      throw new HttpException(
+        'Wrong email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     if (!user.isConfirmed) {
-      throw new UnauthorizedException('User is not confirmed');
+      throw new HttpException(
+        "Please activate you're account",
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     if (user.isConfirmed) {
       const token = this.jwtService.sign(
@@ -78,13 +101,60 @@ export class AuthService {
       };
     }
 
-    throw new UnauthorizedException('Something went wrong');
+    throw new HttpException('Wrong email or password', HttpStatus.UNAUTHORIZED);
+  }
+
+  async confirmEmail(token: string): Promise<UserRegisterResponseDTO> {
+    const { email } = this.jwtService.verify(token);
+    if (!email) {
+      throw new NotFoundException('Invalid token');
+    }
+    const user = await this.userModel.findOne({ email: email });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.isConfirmed = true;
+    await user.save();
+    return {
+      email: user.email,
+      message: 'User successfully confirmed',
+    };
+  }
+
+  async repeatConfirmEmail(user): Promise<{ message: string }> {
+    const { email } = user;
+    const userData = await this.userService.findUserByEmail(email);
+    if (!userData) {
+      throw new NotFoundException('User not found');
+    }
+    const { name } = userData;
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: '15m',
+    });
+    userData.confirmationCode = token;
+    await userData.save();
+    const body = JSON.stringify({ token, email, name });
+    fetch(`${this.configService.get<string>('BASE_URL')}/api/email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    return { message: 'Email sent' };
   }
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userService.findUserByEmail(email);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new HttpException(
+        'Wrong email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     const passwordIsMatch = await bcrypt.compare(password, user.password);
 
@@ -92,6 +162,6 @@ export class AuthService {
       return user;
     }
 
-    throw new UnauthorizedException('Something went wrong');
+    throw new HttpException('Wrong email or password', HttpStatus.UNAUTHORIZED);
   }
 }

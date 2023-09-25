@@ -70,7 +70,6 @@ export class ImageController {
     deletedCount: number;
     message: string;
   }> {
-    console.log('imageIds: ', imageIds);
     return this.imageService.deleteImage(request, imageIds);
   }
 }

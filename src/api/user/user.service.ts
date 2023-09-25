@@ -6,7 +6,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './user.schema';
-import { RegisterUserDTO } from '../auth/dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserResponseService } from './user-response.service';
 import { UserDTO } from './dto/user.dto';
@@ -63,10 +62,10 @@ export class UserService {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async createUser(user: RegisterUserDTO): Promise<User> {
-    const newUser = new this.userModel(user);
-    return newUser.save();
-  }
+  // async createUser(user: RegisterUserDTO): Promise<User> {
+  //   const newUser = new this.userModel(user);
+  //   return newUser.save();
+  // }
 
   async updateOwnerInfo(
     request: Request,
@@ -79,13 +78,11 @@ export class UserService {
       const updates = request.body as UserDTO;
 
       if (image) {
-        console.log(image);
         const avatar = {
           buffer: image[0].buffer,
           filename: image[0].originalname,
           mimetype: image[0].mimetype,
         };
-        console.log(avatar);
         const updatedUser = await this.userModel.updateOne(
           { _id: userId },
           { $set: updates, avatar },
