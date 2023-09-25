@@ -5,8 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './api/auth/auth.module';
 import { UserModule } from './api/user/user.module';
-import { fastifyFactory } from './fasify.provider';
 import { EventModule } from './api/event/event.module';
+import { ImageModule } from './api/image/image.module';
 
 @Module({
   imports: [
@@ -19,11 +19,12 @@ import { EventModule } from './api/event/event.module';
       }),
       inject: [ConfigService],
     }),
+    ImageModule,
     AuthModule,
     EventModule,
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService, fastifyFactory],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -7,6 +7,9 @@ import {
   Param,
   Body,
   UseGuards,
+  Post,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.schema';
@@ -18,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
 import { UserDTO } from './dto/user.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 @ApiTags('users')
@@ -32,7 +36,20 @@ export class UserController {
   async findAll(@Request() request): Promise<UserDTO[]> {
     return this.userService.findAllUsers(request);
   }
-
+  @Get('user')
+  @ApiOperation({ summary: 'Get an owner by ID' })
+  @ApiResponse({ status: 200, description: 'OK', type: User })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getOwner(@Request() request): Promise<User> {
+    return this.userService.findOwner(request);
+  }
+  @Get('connected')
+  @ApiOperation({ summary: 'Get an owner by ID' })
+  @ApiResponse({ status: 200, description: 'OK', type: User })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getConnected(@Request() request): Promise<UserDTO[]> {
+    return this.userService.findConnectedUsers(request);
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'OK', type: User })
@@ -41,22 +58,38 @@ export class UserController {
     return this.userService.findUserById(id);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a user by ID' })
+  @Post('add/:id')
+  @ApiOperation({ summary: 'Add connect to user by ID' })
   @ApiResponse({ status: 200, description: 'OK', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async updateUser(
+  async addConnect(
+    @Request() request,
     @Param('id') id: string,
-    @Body() updateUser: Partial<User>,
-  ): Promise<User> {
-    return this.userService.updateUser(id, updateUser);
+  ): Promise<string> {
+    return this.userService.addConnect(request, id);
   }
 
-  @Delete(':id')
+  @Put()
+  @ApiOperation({ summary: 'Update  user' })
+  @ApiResponse({ status: 200, description: 'OK', type: User })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @UseInterceptors(FilesInterceptor('image'))
+  async updateOwnerInfo(
+    @UploadedFiles() image,
+    @Request() request,
+    @Body() updateUser: UserDTO,
+  ): Promise<{ message: string }> {
+    return this.userService.updateOwnerInfo(request, updateUser, image);
+  }
+
+  @Delete('untouch/:id')
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiResponse({ status: 204, description: 'No Content' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async deleteUser(@Param('id') id: string): Promise<void> {
-    return this.userService.deleteUser(id);
+  async unTouchConnect(
+    @Request() request,
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    return this.userService.unTouchUser(request, id);
   }
 }

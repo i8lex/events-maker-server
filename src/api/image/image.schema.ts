@@ -17,7 +17,7 @@ export class Image extends Document {
   @ApiProperty({ example: 'event-id', description: 'Event ID' })
   event: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Thumb', unique: true })
+  @Prop({ type: Types.ObjectId, ref: 'Thumb' })
   thumb: Types.ObjectId;
 
   @Prop()

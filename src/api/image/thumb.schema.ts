@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { Event } from '../event/event.schema';
 
 @Schema()
 export class Thumb extends Document {
@@ -12,11 +13,11 @@ export class Thumb extends Document {
   @ApiProperty({ example: 'chat-id', description: 'Chat ID' })
   chat: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
+  @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
   @ApiProperty({ example: 'event-id', description: 'Event ID' })
   event: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Image', required: true, unique: true })
+  @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
   @ApiProperty({ example: 'image-id', description: 'Image ID' })
   image: Types.ObjectId;
 

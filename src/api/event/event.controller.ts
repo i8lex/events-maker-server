@@ -7,6 +7,7 @@ import {
   Request,
   Body,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { Event } from './event.schema';
@@ -17,6 +18,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
+import { CreateEventDto } from './dto/createEvent.dto';
 
 @Controller('events')
 @ApiTags('events')
@@ -28,8 +30,18 @@ export class EventController {
   @Get()
   @ApiOperation({ summary: 'Get all events' })
   @ApiResponse({ status: 200, description: 'OK', type: Event, isArray: true })
-  async findAll(@Request() request): Promise<Event[]> {
+  async findAllEvents(@Request() request): Promise<Event[]> {
     return this.eventService.findAllEventsByOwner(request);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create event' })
+  @ApiResponse({ status: 200, description: 'OK', type: Event, isArray: true })
+  async createEvent(
+    @Request() request,
+    @Body() event: CreateEventDto,
+  ): Promise<Event> {
+    return this.eventService.createEvent(request, event);
   }
 
   @Get(':id')
@@ -45,10 +57,11 @@ export class EventController {
   @ApiResponse({ status: 200, description: 'OK', type: Event })
   @ApiResponse({ status: 404, description: 'Event not found' })
   async updateEvent(
+    @Request() request,
     @Param('id') id: string,
     @Body() updateEvent: Partial<Event>,
-  ): Promise<Event> {
-    return this.eventService.updateEvent(id, updateEvent);
+  ): Promise<{ message: string }> {
+    return this.eventService.updateEvent(request, id, updateEvent);
   }
 
   @Delete(':id')

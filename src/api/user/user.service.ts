@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './user.schema';
@@ -6,6 +10,7 @@ import { RegisterUserDTO } from '../auth/dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserResponseService } from './user-response.service';
 import { UserDTO } from './dto/user.dto';
+import { ImageDto } from '../image/dto/image.dto';
 
 @Injectable()
 export class UserService {
@@ -28,8 +33,27 @@ export class UserService {
     return this.userResponseService.getUsersForResponse(users, currentUser);
   }
 
+  async findConnectedUsers(request: Request): Promise<UserDTO[]> {
+    const token = request.headers['authorization'];
+    const userId = await this.getUserIdFromToken(token);
+    const currentUser = await this.userModel.findById(userId).exec();
+    const users = await this.userModel
+      .find({
+        _id: { $ne: userId },
+        isConfirmed: true,
+        $or: [{ _id: { $in: currentUser.connects } }, { connects: userId }],
+      })
+      .exec();
+    return this.userResponseService.getUsersForResponse(users, currentUser);
+  }
+
   async findUserById(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
+  }
+  async findOwner(request: Request): Promise<User | null> {
+    const token = request.headers['authorization'];
+    const userId = await this.getUserIdFromToken(token);
+    return this.userModel.findById(userId).exec();
   }
   async findUserByName(name: string): Promise<User | null> {
     return this.userModel.findOne({ name }).exec();
@@ -44,17 +68,78 @@ export class UserService {
     return newUser.save();
   }
 
-  async updateUser(
-    id: string,
-    updateUser: Partial<User>,
-  ): Promise<User | null> {
-    return await this.userModel
-      .findByIdAndUpdate(id, updateUser, { new: true })
-      .exec();
+  async updateOwnerInfo(
+    request: Request,
+    updateUser: UserDTO,
+    image: ImageDto,
+  ): Promise<{ message: string } | null> {
+    const token = request.headers['authorization'];
+    const userId = await this.getUserIdFromToken(token);
+    try {
+      const updates = request.body as UserDTO;
+
+      if (image) {
+        console.log(image);
+        const avatar = {
+          buffer: image[0].buffer,
+          filename: image[0].originalname,
+          mimetype: image[0].mimetype,
+        };
+        console.log(avatar);
+        const updatedUser = await this.userModel.updateOne(
+          { _id: userId },
+          { $set: updates, avatar },
+        );
+
+        if (updatedUser.modifiedCount === 0) {
+          throw new BadRequestException('Event not found');
+        }
+      } else {
+        const updatedUser = await this.userModel.updateOne(
+          { _id: userId },
+          { $set: updates },
+        );
+
+        if (updatedUser.modifiedCount === 0) {
+          throw new BadRequestException('Event not found');
+        }
+      }
+
+      return { message: 'User updated' };
+    } catch (err) {
+      console.log('err.message');
+      throw new Error('Something went wrong');
+    }
   }
 
-  async deleteUser(id: string): Promise<void> {
-    await this.userModel.findByIdAndDelete(id).exec();
+  async unTouchUser(
+    request: Request,
+    id: string,
+  ): Promise<{ message: string }> {
+    const token = request.headers['authorization'];
+    const userId = await this.getUserIdFromToken(token);
+    try {
+      await this.userModel
+        .findOneAndUpdate(userId, { $pull: { connects: id } })
+        .exec();
+      await this.userModel
+        .findOneAndUpdate(new Types.ObjectId(id), {
+          $pull: { connects: userId },
+        })
+        .exec();
+      return { message: 'Successfully removed' };
+    } catch (error) {
+      throw new Error('Something went wrong');
+    }
+  }
+
+  async addConnect(request: Request, id: string): Promise<string> {
+    const token = request.headers['authorization'];
+    const userId = await this.getUserIdFromToken(token);
+    await this.userModel
+      .findByIdAndUpdate(id, { $push: { connects: userId } })
+      .exec();
+    return 'Successfully added';
   }
   async getUserIdFromToken(token: string): Promise<Types.ObjectId> {
     try {
