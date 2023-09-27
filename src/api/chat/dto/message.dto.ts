@@ -1,5 +1,4 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
-import { Types } from 'mongoose';
 
 export class MessageDto {
   @ApiResponseProperty({ example: 'uqhcalcdg23r234397' })

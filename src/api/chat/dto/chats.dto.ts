@@ -1,4 +1,4 @@
-import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class ChatsDto {
   @ApiProperty({ description: 'Chat Id', example: 'uqhcalcdg23r234397' })
