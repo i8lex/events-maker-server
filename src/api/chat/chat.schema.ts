@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { Message, MessageSchema } from './message.shema';
 
 @Schema()
 export class Chat extends Document {
@@ -28,66 +29,34 @@ export class Chat extends Document {
   microtask: Types.ObjectId;
 
   @Prop({
-    type: [
-      {
-        user: { type: Types.ObjectId, ref: 'User' },
-        type: String,
-        text: {
-          type: String,
-          minlength: 1,
-          maxlength: 500,
-        },
-        image: {
-          name: String,
-          buffer: String,
-          thumbBuffer: String,
-          mimeType: String,
-        },
-        audio: {
-          name: String,
-          buffer: String,
-          mimeType: String,
-        },
-        video: {
-          name: String,
-          link: String,
-        },
-        created: Date,
-      },
-    ],
+    type: [MessageSchema],
+    default: [],
   })
   @ApiProperty({
     example: [
       {
         user: 'user-id',
-        type: 'text',
+        username: 'Root445',
+        messageType: 'text',
         text: 'Chat message',
+        image: {
+          name: 'avatar-1',
+          buffer: 'image-buffer',
+          thumbBuffer: 'thumb-buffer',
+          mimeType: 'image/jpeg',
+        },
+        audio: {
+          name: 'audio-1',
+          buffer: 'audio-buffer',
+          mimeType: 'audio/mpeg',
+        },
+        video: { name: 'video-1', link: 'video-link' },
         created: '2023-09-23T12:00:00Z',
       },
     ],
     description: 'Array of chat messages',
   })
-  messages: {
-    user: Types.ObjectId;
-    type: string;
-    text?: string;
-    image?: {
-      name: string;
-      buffer: string;
-      thumbBuffer: string;
-      mimeType: string;
-    };
-    audio?: {
-      name: string;
-      buffer: string;
-      mimeType: string;
-    };
-    video?: {
-      name: string;
-      link: string;
-    };
-    created: Date;
-  }[];
+  messages: Message[];
 
   @Prop()
   @ApiProperty({

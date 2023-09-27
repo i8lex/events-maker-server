@@ -7,6 +7,7 @@ import { AuthModule } from './api/auth/auth.module';
 import { UserModule } from './api/user/user.module';
 import { EventModule } from './api/event/event.module';
 import { ImageModule } from './api/image/image.module';
+import { SocketModule } from './api/socket/socket.module';
 
 @Module({
   imports: [
@@ -19,10 +20,12 @@ import { ImageModule } from './api/image/image.module';
       }),
       inject: [ConfigService],
     }),
+
     ImageModule,
     AuthModule,
     EventModule,
     UserModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

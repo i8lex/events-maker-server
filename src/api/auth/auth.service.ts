@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '../user/user.schema';
 import { JwtService } from '@nestjs/jwt';
@@ -96,6 +97,7 @@ export class AuthService {
       return {
         _id: user._id,
         email: user.email,
+        name: user.name,
         isConfirmed: user.isConfirmed,
         token: token,
       };
@@ -147,7 +149,17 @@ export class AuthService {
       });
     return { message: 'Email sent' };
   }
-
+  public async getUserFromAuthenticationToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+    });
+    const userId = payload.id;
+    if (!userId) {
+      throw new UnauthorizedException('User not found');
+    }
+    const user = await this.userModel.findById(userId).exec();
+    return { username: user.name, userId: user._id };
+  }
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userService.findUserByEmail(email);
     if (!user) {

@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter, MulterModule } from '@nestjs/platform-express';
 import { HttpExceptionFilter } from './common/http-exception.filter';
+import { WsAdapter } from '@nestjs/platform-ws';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter());
@@ -34,6 +36,12 @@ async function bootstrap() {
     dest: './uploads',
   });
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useWebSocketAdapter(new WsAdapter(app));
+
+  const httpServer = app.getHttpServer();
+  const io = new IoAdapter(httpServer);
+
+  app.useWebSocketAdapter(io);
   await app.listen(3001);
 }
 bootstrap().then();
