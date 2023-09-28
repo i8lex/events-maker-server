@@ -82,6 +82,7 @@ export class ChatService {
             messageType: 'text',
             user: body.userId,
             username: body.username,
+            created: new Date(),
           },
         },
       },

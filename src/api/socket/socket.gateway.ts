@@ -30,6 +30,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       console.log(`Joined room: ${roomName}`);
       client.join(roomName);
+      this.chatService.getUserFromSocket(client).then((res) => {
+        this.server
+          .to(roomName)
+          .emit('readMessage', { userId: res.userId.toString() });
+      });
     }
   }
 
