@@ -5,10 +5,12 @@ import { ExpressAdapter, MulterModule } from '@nestjs/platform-express';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter());
-
+  const configService = app.get(ConfigService);
+  const APP_PORT = configService.get('PORT');
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -42,6 +44,6 @@ async function bootstrap() {
   const io = new IoAdapter(httpServer);
 
   app.useWebSocketAdapter(io);
-  await app.listen(3001);
+  await app.listen(APP_PORT);
 }
 bootstrap().then();
