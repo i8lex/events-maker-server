@@ -125,6 +125,7 @@ export class AuthService {
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
       expiresIn: '15m',
     });
+    console.log({ token, email, name });
     userData.confirmationCode = token;
     await userData.save();
     return { token, email, name };
