@@ -50,18 +50,6 @@ export class AuthService {
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
       expiresIn: '15m',
     });
-    const body = JSON.stringify({ token, email, name });
-    fetch(`${this.configService.get<string>('BASE_URL')}/api/email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body,
-    })
-      .then((response) => response.json())
-      .catch((error) => {
-        console.error('Ошибка:', error);
-      });
 
     const newUser = new this.userModel({
       name,
@@ -71,6 +59,8 @@ export class AuthService {
     });
     await newUser.save();
     return {
+      name,
+      token,
       email: newUser.email,
       message: 'User successfully registered',
     };
@@ -123,7 +113,9 @@ export class AuthService {
     };
   }
 
-  async repeatConfirmEmail(user): Promise<{ message: string }> {
+  async repeatConfirmEmail(
+    user,
+  ): Promise<{ email: string; name: string; token: string }> {
     const { email } = user;
     const userData = await this.userService.findUserByEmail(email);
     if (!userData) {
@@ -135,19 +127,7 @@ export class AuthService {
     });
     userData.confirmationCode = token;
     await userData.save();
-    const body = JSON.stringify({ token, email, name });
-    fetch(`${this.configService.get<string>('BASE_URL')}/api/email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body,
-    })
-      .then((response) => response.json())
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-    return { message: 'Email sent' };
+    return { token, email, name };
   }
   public async getUserFromAuthenticationToken(token: string) {
     const payload = this.jwtService.verify(token, {

@@ -63,7 +63,7 @@ export class AuthController {
   @ApiBody({ type: Object, required: true })
   async repeatEmail(
     @Body() email: { email: string },
-  ): Promise<{ message: string }> {
+  ): Promise<{ email: string; name: string; token: string }> {
     return this.authService.repeatConfirmEmail(email);
   }
 }
