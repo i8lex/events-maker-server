@@ -76,8 +76,7 @@ export class UserService {
     const userId = await this.getUserIdFromToken(token);
     try {
       const updates = request.body as UserDTO;
-
-      if (image) {
+      if (image.mimetype) {
         const avatar = {
           buffer: image[0].buffer,
           filename: image[0].originalname,
