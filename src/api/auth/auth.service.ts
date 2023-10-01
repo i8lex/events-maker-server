@@ -137,8 +137,8 @@ export class AuthService {
     if (!userId) {
       throw new UnauthorizedException('User not found');
     }
-    const user = await this.userModel.findById(userId).exec();
-    return { username: user.name, userId: user._id };
+    const { name } = await this.userModel.findById(userId).exec();
+    return { username: name, userId: userId };
   }
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userService.findUserByEmail(email);

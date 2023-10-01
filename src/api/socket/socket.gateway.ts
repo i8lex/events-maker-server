@@ -22,19 +22,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Socket;
   constructor(private readonly chatService: ChatService) {}
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
     const roomName = client.handshake.query.room;
     if (!roomName) {
-      console.log('Room name not provided');
     } else {
       console.log(`Joined room: ${roomName}`);
       client.join(roomName);
-      this.chatService.getUserFromSocket(client).then((res) => {
-        this.server
-          .to(roomName)
-          .emit('readMessage', { userId: res.userId.toString() });
-      });
     }
   }
 
@@ -42,17 +36,24 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('readMessage')
-  async handleJoin(
+  @SubscribeMessage('isDeliveredMessage')
+  async handleDeliverMessage(
     @MessageBody() body: MessageDto,
     @ConnectedSocket() client: Socket,
   ) {
     const user = await this.chatService.getUserFromSocket(client);
     const roomName = client.handshake.query.room;
-    const readBy = await this.chatService.readMessage(
-      body,
-      user.userId.toString(),
-    );
+    const deliverTo = await this.chatService.deliverMessage(body, user.userId);
+    this.server.to(roomName).emit('isDeliveredMessage', deliverTo.userId);
+  }
+  @SubscribeMessage('readMessage')
+  async handleReadMessage(
+    @MessageBody() body: MessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = await this.chatService.getUserFromSocket(client);
+    const roomName = client.handshake.query.room;
+    const readBy = await this.chatService.readBy(body, user.userId);
     this.server.to(roomName).emit('readMessage', readBy);
   }
 

@@ -62,11 +62,6 @@ export class UserService {
     return this.userModel.findOne({ email }).exec();
   }
 
-  // async createUser(user: RegisterUserDTO): Promise<User> {
-  //   const newUser = new this.userModel(user);
-  //   return newUser.save();
-  // }
-
   async updateOwnerInfo(
     request: Request,
     updateUser: UserDTO,
@@ -76,7 +71,7 @@ export class UserService {
     const userId = await this.getUserIdFromToken(token);
     try {
       const updates = request.body as UserDTO;
-      if (image.mimetype) {
+      if (image[0]) {
         const avatar = {
           buffer: image[0].buffer,
           filename: image[0].originalname,

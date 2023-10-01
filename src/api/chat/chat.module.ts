@@ -7,6 +7,7 @@ import { Chat, ChatSchema } from './chat.schema';
 import { Event, EventSchema } from '../event/event.schema';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
+import { Message, MessageSchema } from './message.shema';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from '../auth/auth.module';
       { name: Chat.name, schema: ChatSchema },
       { name: User.name, schema: UserSchema },
       { name: Event.name, schema: EventSchema },
+      { name: Message.name, schema: MessageSchema },
     ]),
     AuthModule,
     UserModule,

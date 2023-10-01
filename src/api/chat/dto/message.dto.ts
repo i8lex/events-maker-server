@@ -1,4 +1,5 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import { Types } from 'mongoose';
 
 export class MessageDto {
   @ApiResponseProperty({ example: 'uqhcalcdg23r234397' })
@@ -8,7 +9,7 @@ export class MessageDto {
     description: 'The id of the message.',
     example: 'uqhcalcdg23r234397',
   })
-  messageId?: string;
+  messageId?: Types.ObjectId;
 
   @ApiProperty({
     description: 'The id of the user.',
@@ -20,13 +21,13 @@ export class MessageDto {
     description: 'The name of the user.',
     example: 'Root445',
   })
-  userId: string;
+  userId: Types.ObjectId;
 
   @ApiProperty({
     description: 'The id of the chat.',
     example: 'uqhcalcdg23r234397',
   })
-  chatId: string;
+  chatId: Types.ObjectId;
 
   @ApiProperty({
     description: 'The id of the chat.',
@@ -50,5 +51,11 @@ export class MessageDto {
     description: 'This message my been read by this users',
     example: ['uqhcalcdg23r234397', 'uqhcalcdg23r234397'],
   })
-  readBy: string[];
+  readBy: Types.ObjectId[];
+
+  @ApiProperty({
+    description: 'Type of action',
+    example: ['Message'],
+  })
+  type: string;
 }

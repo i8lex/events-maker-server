@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Chat } from './chat.schema';
 import { User } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,6 +20,7 @@ export class ChatService {
   constructor(
     @InjectModel(Chat.name) private chatModel: Model<Chat>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Message.name) private messageModel: Model<Message>,
     @Inject(UserService) private readonly userService: UserService,
     @Inject(AuthService) private readonly authService: AuthService,
   ) {}
@@ -53,67 +59,85 @@ export class ChatService {
   async getChatById(request: Request, chatId: string): Promise<Chat> {
     const token = request.headers['authorization'];
     const userId = await this.userService.getUserIdFromToken(token);
-    const chat = await this.chatModel.findById(chatId);
-    chat.messages.map((message) => {
-      if (!message.readBy.includes(userId.toString())) {
-        message.readBy.push(userId.toString());
-      }
-    });
-    await chat.save();
+    await this.messageModel.updateMany(
+      { chatId: chatId },
+      { $addToSet: { readBy: userId } },
+      { new: true },
+    );
+
+    const chat = await this.chatModel
+      .findById(chatId)
+      .populate('messages')
+      .exec();
+
     return chat;
   }
 
   async findById(id: string): Promise<Chat> {
     if (!id) {
       console.log('error');
-      return;
-      // throw new NotFoundException('Chat not found');
+      throw new NotFoundException('Chat not found');
     } else {
       return this.chatModel.findOne({ user: id });
     }
   }
   async saveMessage(body: MessageDto): Promise<Message> {
+    const message = await new this.messageModel({
+      chatId: body.chatId,
+      message: body.message,
+      messageType: 'text',
+      user: body.userId,
+      username: body.username,
+      deliveredTo: [body.userId],
+      readBy: [body.userId],
+      created: new Date(),
+    });
+    await message.save();
     const chat = await this.chatModel.updateOne(
       { _id: body.chatId },
-      {
-        $push: {
-          messages: {
-            message: body.message,
-            messageType: 'text',
-            user: body.userId,
-            username: body.username,
-            created: new Date(),
-          },
-        },
-      },
+      { $push: { messages: message._id } },
     );
     if (chat.modifiedCount === 1) {
-      const chat = await this.chatModel.findOne({ _id: body.chatId });
-      return chat.messages[chat.messages.length - 1];
+      return message;
     } else {
       throw new WsException('Failed to save message');
     }
   }
-  async readMessage(
+  async deliverMessage(
     body: MessageDto,
-    userId: string,
-  ): Promise<{ userId: string; messageId: string }> {
-    const chat = await this.chatModel.findById(body.chatId);
-    if (!chat) {
-      throw new WsException('Chat not found');
-    }
-    const message = chat.messages.find((msg) => {
-      return msg._id.toString() === body.messageId;
-    });
+    userId: Types.ObjectId,
+  ): Promise<{
+    userId: Types.ObjectId;
+    messageId: Types.ObjectId;
+    type: string;
+  }> {
+    const message = await this.messageModel.findByIdAndUpdate(
+      body.messageId,
+      { $addToSet: { deliveredTo: userId } },
+      { new: true },
+    );
     if (!message) {
       throw new WsException('Message not found');
     }
-    if (!message.readBy.includes(userId)) {
-      message.readBy.push(userId);
-    }
-    await chat.save();
+    return { userId, messageId: body.messageId, type: 'deliver' };
+  }
 
-    return { userId, messageId: body.messageId };
+  async readBy(
+    body: MessageDto,
+    userId: Types.ObjectId,
+  ): Promise<{ userId: Types.ObjectId; messageId: Types.ObjectId }> {
+    const { messageId } = body;
+    const message = await this.messageModel.findByIdAndUpdate(
+      messageId,
+      { $addToSet: { readBy: userId } },
+      { new: true },
+    );
+    if (!message) {
+      throw new WsException('Message not found');
+    }
+    if (message) {
+      return { userId, messageId: messageId };
+    }
   }
   async getUserFromSocket(socket: Socket) {
     let token = socket.handshake.headers.authorization;

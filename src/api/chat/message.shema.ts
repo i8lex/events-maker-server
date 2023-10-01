@@ -1,12 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Schema()
 export class Message extends Document {
-  @Prop({ required: true })
+  @Prop({ type: Types.ObjectId, required: true, ref: 'User' })
   @ApiProperty({ example: 'user-id', description: 'User ID' })
-  user: string;
+  user: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, required: true, ref: 'Chat' })
+  @ApiProperty({ example: 'acuhoewoeuvhs923r62k', description: 'Chat ID' })
+  chatId: Types.ObjectId;
 
   @Prop({ required: true })
   @ApiProperty({ example: 'Username', description: 'This name of the user' })
@@ -43,8 +47,11 @@ export class Message extends Document {
     name: string;
     link: string;
   };
-  @Prop({ type: [String], default: [] })
-  readBy: string[];
+  @Prop({ type: [Types.ObjectId], default: [], ref: 'User' })
+  readBy: Types.ObjectId[];
+
+  @Prop({ type: [Types.ObjectId], default: [] })
+  deliveredTo: Types.ObjectId[];
 
   @Prop({ required: true, default: new Date() })
   created: Date;
