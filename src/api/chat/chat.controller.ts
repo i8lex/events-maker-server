@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
+import { ChatDto } from './dto/chat.dto';
 
 @Controller('chats')
 @ApiTags('chats')
@@ -27,8 +28,9 @@ export class ChatController {
   @Get()
   @ApiOperation({ summary: 'Get all chats' })
   @ApiResponse({ status: 200, description: 'OK', type: Chat, isArray: true })
-  async getAllChatsByUser(@Request() request): Promise<Chat[]> {
-    return this.chatService.getAllChatsByUserId(request);
+  async getChatsByUserId(@Request() request): Promise<Partial<ChatDto>[]> {
+    const chats = await this.chatService.getChatsByUserId(request);
+    return chats;
   }
   @Get('chat/:id')
   @ApiOperation({ summary: 'Get a chat by ID' })

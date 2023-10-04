@@ -4,6 +4,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 @Schema()
 export class Chat extends Document {
+  @Prop({ type: String })
+  @ApiProperty({ example: 'Tess room', description: 'The title of the chat' })
+  title?: string;
+
   @Prop({ type: Types.ObjectId, ref: 'User' })
   @ApiProperty({ example: 'user-id', description: 'User ID' })
   user: Types.ObjectId;
@@ -14,6 +18,10 @@ export class Chat extends Document {
     description: 'Array of User IDs',
   })
   users: Types.ObjectId[];
+
+  @Prop({ type: [String] })
+  @ApiProperty({ example: ['Root12', 'Root13'], description: 'Names of users' })
+  userNames: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'Event' })
   @ApiProperty({ example: 'event-id', description: 'Event ID' })

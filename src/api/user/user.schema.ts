@@ -177,5 +177,9 @@ export class User extends Document {
     description: 'Date of Creation',
   })
   created: Date;
+
+  @Prop({ default: false })
+  @ApiProperty({ example: 'false', description: 'It is user online status ' })
+  isOnline: boolean;
 }
 export const UserSchema = SchemaFactory.createForClass(User);
