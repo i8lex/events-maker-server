@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Chat } from './chat.schema';
 import { User } from '../user/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -69,7 +64,7 @@ export class ChatService {
         },
       },
     });
-    const chats = await Promise.all(
+    return await Promise.all(
       chatsFromDB.map(async (chat) => {
         const unreadMessages = await this.messageModel.find({
           chat: chat._id,
@@ -91,29 +86,12 @@ export class ChatService {
         return chats;
       }),
     );
-    return chats;
   }
 
   async getChatById(request: Request, chatId: string): Promise<Chat> {
-    const token = request.headers['authorization'];
-    const userId = await this.userService.getUserIdFromToken(token);
-    // await this.messageModel.updateMany(
-    //   { chatId: chatId },
-    //   { $addToSet: { deliveredTo: userId } },
-    //   { new: true },
-    // );
-
     return await this.chatModel.findById(chatId).populate('messages').exec();
   }
 
-  // async findById(id: string): Promise<Chat> {
-  //   if (!id) {
-  //     console.log('error');
-  //     throw new NotFoundException('Chat not found');
-  //   } else {
-  //     return this.chatModel.findOne({ user: id });
-  //   }
-  // }
   async saveMessage(body: MessageDto): Promise<Message> {
     const message = await new this.messageModel({
       chatId: body.chatId,

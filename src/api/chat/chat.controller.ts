@@ -29,8 +29,7 @@ export class ChatController {
   @ApiOperation({ summary: 'Get all chats' })
   @ApiResponse({ status: 200, description: 'OK', type: Chat, isArray: true })
   async getChatsByUserId(@Request() request): Promise<Partial<ChatDto>[]> {
-    const chats = await this.chatService.getChatsByUserId(request);
-    return chats;
+    return await this.chatService.getChatsByUserId(request);
   }
   @Get('chat/:id')
   @ApiOperation({ summary: 'Get a chat by ID' })
