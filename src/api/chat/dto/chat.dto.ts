@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Message } from '../message.shema';
 import { Types } from 'mongoose';
-import { Prop } from '@nestjs/mongoose';
 
 export class ChatDto {
   @ApiProperty({ description: 'Chat Id', example: 'uqhcalcdg23r234397' })

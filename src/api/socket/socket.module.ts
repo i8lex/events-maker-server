@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { Event, EventSchema } from '../event/event.schema';
 import { User, UserSchema } from '../user/user.schema';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { User, UserSchema } from '../user/user.schema';
       { name: Event.name, schema: EventSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    UserModule,
     ChatModule,
   ],
   providers: [SocketGateway],

@@ -61,6 +61,9 @@ export class UserService {
   async findUserByEmail(email: string): Promise<User | null> {
     return this.userModel.findOne({ email }).exec();
   }
+  async setStatus(userId: string, isOnline: boolean): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(userId, { isOnline }).exec();
+  }
 
   async updateOwnerInfo(
     request: Request,
@@ -98,7 +101,6 @@ export class UserService {
 
       return { message: 'User updated' };
     } catch (err) {
-      console.log('err.message');
       throw new Error('Something went wrong');
     }
   }

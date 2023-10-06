@@ -27,7 +27,7 @@ export class MessageDto {
     description: 'The id of the chat.',
     example: 'uqhcalcdg23r234397',
   })
-  chatId: Types.ObjectId;
+  chatId: string;
 
   @ApiProperty({
     description: 'The id of the chat.',

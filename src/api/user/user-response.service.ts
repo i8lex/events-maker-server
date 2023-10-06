@@ -99,6 +99,7 @@ export class UserResponseService {
       }
       userToResponse._id = user._id;
       userToResponse.name = user.name;
+      userToResponse.isOnline = user.isOnline;
       return userToResponse;
     });
   };

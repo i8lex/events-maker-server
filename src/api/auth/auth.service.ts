@@ -130,15 +130,19 @@ export class AuthService {
     return { token, email, name };
   }
   public async getUserFromAuthenticationToken(token: string) {
-    const payload = this.jwtService.verify(token, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-    });
-    const userId = payload.id;
-    if (!userId) {
-      throw new UnauthorizedException('User not found');
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+      });
+      const userId = payload.id;
+      if (!userId) {
+        throw new UnauthorizedException('User not found');
+      }
+      const { name } = await this.userModel.findById(userId).exec();
+      return { username: name, userId: userId };
+    } catch (err) {
+      console.log('Error in getUserFromAuthenticationToken', err);
     }
-    const { name } = await this.userModel.findById(userId).exec();
-    return { username: name, userId: userId };
   }
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userService.findUserByEmail(email);

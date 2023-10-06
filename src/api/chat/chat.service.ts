@@ -62,22 +62,21 @@ export class ChatService {
   async getChatsByUserId(request: Request): Promise<Partial<ChatDto>[]> {
     const token = request.headers['authorization'];
     const userId = await this.userService.getUserIdFromToken(token);
-    const chats = await this.chatModel.find({
+    const chatsFromDB = await this.chatModel.find({
       users: {
         $elemMatch: {
           $eq: userId,
         },
       },
     });
-    const chatsDto = await Promise.all(
-      chats.map(async (chat) => {
+    const chats = await Promise.all(
+      chatsFromDB.map(async (chat) => {
         const unreadMessages = await this.messageModel.find({
           chat: chat._id,
           readBy: { $ne: userId },
         });
 
-        console.log(unreadMessages);
-        const chatDto: Partial<ChatDto> = {
+        const chats: Partial<ChatDto> = {
           _id: chat._id,
           title: '',
           user: chat.user,
@@ -89,34 +88,32 @@ export class ChatService {
           messages: unreadMessages,
           userNames: chat.userNames,
         };
-        console.log(chatDto);
-        return chatDto;
+        return chats;
       }),
     );
-    console.log(chatsDto);
-    return chatsDto;
+    return chats;
   }
 
   async getChatById(request: Request, chatId: string): Promise<Chat> {
     const token = request.headers['authorization'];
     const userId = await this.userService.getUserIdFromToken(token);
-    await this.messageModel.updateMany(
-      { chatId: chatId },
-      { $addToSet: { readBy: userId } },
-      { new: true },
-    );
+    // await this.messageModel.updateMany(
+    //   { chatId: chatId },
+    //   { $addToSet: { deliveredTo: userId } },
+    //   { new: true },
+    // );
 
     return await this.chatModel.findById(chatId).populate('messages').exec();
   }
 
-  async findById(id: string): Promise<Chat> {
-    if (!id) {
-      console.log('error');
-      throw new NotFoundException('Chat not found');
-    } else {
-      return this.chatModel.findOne({ user: id });
-    }
-  }
+  // async findById(id: string): Promise<Chat> {
+  //   if (!id) {
+  //     console.log('error');
+  //     throw new NotFoundException('Chat not found');
+  //   } else {
+  //     return this.chatModel.findOne({ user: id });
+  //   }
+  // }
   async saveMessage(body: MessageDto): Promise<Message> {
     const message = await new this.messageModel({
       chatId: body.chatId,
@@ -176,15 +173,19 @@ export class ChatService {
     }
   }
   async getUserFromSocket(socket: Socket) {
-    let token = socket.handshake.headers.authorization;
-    if (!token) {
-      throw new UnauthorizedException('Not authorized');
+    try {
+      let token = socket.handshake.headers.authorization;
+      if (!token) {
+        throw new UnauthorizedException('Not authorized');
+      }
+      token = token.split(' ')[1];
+      const user = await this.authService.getUserFromAuthenticationToken(token);
+      if (!user) {
+        throw new WsException('Invalid credentials.');
+      }
+      return user;
+    } catch (err) {
+      console.log('Error in getUserFromSocket', err);
     }
-    token = token.split(' ')[1];
-    const user = await this.authService.getUserFromAuthenticationToken(token);
-    if (!user) {
-      throw new WsException('Invalid credentials.');
-    }
-    return user;
   }
 }

@@ -75,4 +75,7 @@ export class UserDTO {
     buffer: string;
     mimeType: string;
   };
+
+  @ApiProperty({ example: 'false', description: 'It is user online status ' })
+  isOnline?: boolean;
 }
