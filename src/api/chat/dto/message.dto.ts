@@ -18,10 +18,16 @@ export class MessageDto {
   username: string;
 
   @ApiProperty({
-    description: 'The name of the user.',
+    description: 'The id of the user.',
     example: 'Root445',
   })
   userId: Types.ObjectId;
+
+  @ApiProperty({
+    description: 'The id of the users for delivery.',
+    example: 'Root445',
+  })
+  users: string[];
 
   @ApiProperty({
     description: 'The id of the chat.',
@@ -55,7 +61,7 @@ export class MessageDto {
 
   @ApiProperty({
     description: 'Type of action',
-    example: ['Message'],
+    example: ['deliver'],
   })
-  type: string;
+  event?: 'deliver' | 'read';
 }

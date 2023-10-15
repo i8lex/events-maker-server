@@ -67,10 +67,10 @@ export class ChatService {
     return await Promise.all(
       chatsFromDB.map(async (chat) => {
         const unreadMessages = await this.messageModel.find({
-          chat: chat._id,
+          chatId: chat._id.toString(),
           readBy: { $ne: userId },
         });
-
+        // console.log(unreadMessages);
         const chats: Partial<ChatDto> = {
           _id: chat._id,
           title: '',
@@ -80,7 +80,9 @@ export class ChatService {
           task: chat.task,
           microtask: chat.microtask,
           created: chat.created,
-          messages: unreadMessages,
+          messages: unreadMessages.map((message) => {
+            return { _id: message._id };
+          }),
           userNames: chat.userNames,
         };
         return chats;
@@ -120,7 +122,7 @@ export class ChatService {
   ): Promise<{
     userId: Types.ObjectId;
     messageId: Types.ObjectId;
-    type: string;
+    event: string;
   }> {
     const message = await this.messageModel.findByIdAndUpdate(
       body.messageId,
@@ -130,13 +132,17 @@ export class ChatService {
     if (!message) {
       throw new WsException('Message not found');
     }
-    return { userId, messageId: body.messageId, type: 'deliver' };
+    return { userId, messageId: body.messageId, event: 'deliver' };
   }
 
   async readBy(
     body: MessageDto,
     userId: Types.ObjectId,
-  ): Promise<{ userId: Types.ObjectId; messageId: Types.ObjectId }> {
+  ): Promise<{
+    userId: Types.ObjectId;
+    messageId: Types.ObjectId;
+    event: 'read';
+  }> {
     const { messageId } = body;
     const message = await this.messageModel.findByIdAndUpdate(
       messageId,
@@ -147,7 +153,7 @@ export class ChatService {
       throw new WsException('Message not found');
     }
     if (message) {
-      return { userId, messageId: messageId };
+      return { userId, messageId: messageId, event: 'read' };
     }
   }
   async getUserFromSocket(socket: Socket) {

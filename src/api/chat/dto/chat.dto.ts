@@ -28,7 +28,7 @@ export class ChatDto {
     description: 'Some message',
     example: 'Hello world!',
   })
-  messages: Message[];
+  messages: Message[] | Partial<Message>[];
 
   @ApiProperty({ example: 'event-id', description: 'Event ID' })
   event: Types.ObjectId;
