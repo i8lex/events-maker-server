@@ -8,9 +8,10 @@ This is the server-side component of my personal pet project, which is an advanc
 3. Avatar uploads.
 4. User connectivity logic (adding friends).
 5. Privacy settings to control the visibility of personal information (everyone, only contacts, nobody).
-6. Chat functionality between connected users with message delivery and read status tracking.
-7. Creation, editing, and deletion of events.
-8. Image uploads with thumbnail generation logic associated with specific events.
+6. User presence tracking logic: The application includes a feature that tracks and displays the online/offline status of users.
+7. Chat functionality between connected users with message delivery and read status tracking.
+8. Creation, editing, and deletion of events.
+9. Image uploads with thumbnail generation logic associated with specific events.
 
 The application is built using the NestJS framework, and MongoDB is used as the database. The following libraries were utilized in the project:
 
