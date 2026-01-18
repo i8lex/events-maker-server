@@ -51,9 +51,7 @@ export class EventService {
     const token = request.headers['authorization'];
     const userId = await this.userService.getUserIdFromToken(token);
     await this.eventModel
-      .updateOne({ _id: new Types.ObjectId(id), user: userId }, updateEvent, {
-        new: true,
-      })
+      .updateOne({ _id: new Types.ObjectId(id), user: userId }, updateEvent)
       .exec();
     return { message: 'Event updated' };
   }
