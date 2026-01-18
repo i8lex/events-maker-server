@@ -16,10 +16,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
 import { CreateEventDto } from './dto/createEvent.dto';
 
+@ApiExtraModels(Event, CreateEventDto)
 @Controller('events')
 @ApiTags('events')
 @ApiBearerAuth()

@@ -19,10 +19,13 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiExtraModels,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/api/auth/guards/jwt-auth.guard';
 import { Thumb } from './thumb.schema';
+import { Event } from '../event/event.schema';
 
+@ApiExtraModels(Event)
 @Controller('images')
 @ApiTags('images')
 @ApiBearerAuth()
@@ -32,7 +35,7 @@ export class ImageController {
 
   @Get('thumbs/:eventId')
   @ApiOperation({ summary: 'Get all thumbnails' })
-  @ApiResponse({ status: 200, description: 'OK', type: Event, isArray: true })
+  @ApiResponse({ status: 200, description: 'OK', type: Thumb, isArray: true })
   async getAllThumbsByEvent(
     @Param('eventId') eventId: string,
   ): Promise<Thumb[]> {
@@ -41,7 +44,7 @@ export class ImageController {
 
   @Get(':imageId')
   @ApiOperation({ summary: 'Get image by ID' })
-  @ApiResponse({ status: 200, description: 'OK', type: Event, isArray: true })
+  @ApiResponse({ status: 200, description: 'OK', type: Image })
   async getImage(@Param('imageId') imageId: string): Promise<Image> {
     return this.imageService.findImageById(imageId);
   }

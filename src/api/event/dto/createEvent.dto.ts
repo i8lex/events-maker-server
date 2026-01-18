@@ -5,14 +5,14 @@ export class CreateEventDto {
   _id: string;
 
   @ApiProperty({
-    description: 'The first name of the user.',
-    example: 'John',
+    description: 'Event title',
+    example: 'Event Title',
   })
   title: string;
 
   @ApiProperty({
-    description: 'The last name of the user.',
-    example: 'Doe',
+    description: 'Event description',
+    example: 'Event Description',
   })
   description: string;
 }
